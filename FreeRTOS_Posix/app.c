@@ -1,5 +1,6 @@
 #include "app.h"
 #include "ext_timer.h"
+#include "ext_lua.h"
 
 int app_ret = 1;
 
@@ -33,6 +34,9 @@ void app_init (void) {
 #ifdef EXT_TIMER
     ext_timer_init();
 #endif
+#ifdef EXT_LUA
+    ext_lua_init();
+#endif
 
     E_listener_add(E_EVT_TEST, cb_1);
     E_listener_add(E_EVT_TIMER_IN_EXPIRED, cb_timer);
@@ -44,4 +48,8 @@ void app_init (void) {
     E_queue_put(E_EVT_TEST, (E_event_param_t)3, 0, NULL);
 
     E_queue_put(E_EVT_TIMER_OUT_START, (E_event_param_t)2000, 0, NULL);
+
+    E_queue_put(E_EVT_TIMER_OUT_START, (E_event_param_t)2000, 0, NULL);
+
+    E_queue_put(E_EVT_LUA_OUT_FILE, (E_event_param_t)0, 15, "../main.lua");
 }

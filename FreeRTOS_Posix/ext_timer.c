@@ -6,8 +6,8 @@
 #include "task.h"
 
 #include "events.h"
-#include "ext_timer.h"
 #include "app.h"
+#include "ext_timer.h"
 
 static int dt = 0;
 

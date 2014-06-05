@@ -1,6 +1,4 @@
-// 15:30 => 17:00 (implementacao events.[hc])
-// 19:00 => 21:00
-// 07:20 =>
+// TODO: ext_*_close()
 
 void vMainQueueSendPassed(void) {}
 void vApplicationIdleHook(void) {}
