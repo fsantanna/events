@@ -1,5 +1,5 @@
 #include "app.h"
-#include "timer.h"
+#include "ext_timer.h"
 
 int app_ret = 1;
 
@@ -45,5 +45,3 @@ void app_init (void) {
 
     E_queue_put(E_EVT_TIMER_OUT_START, (E_event_param_t)2000, 0, NULL);
 }
-
-#endif
