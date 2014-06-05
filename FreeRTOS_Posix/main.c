@@ -1,24 +1,32 @@
 // 15:30 => 17:00 (implementacao events.[hc])
-
-#define DEBUG
+// 19:00 => 21:00
+// 07:20 =>
 
 void vMainQueueSendPassed(void) {}
 void vApplicationIdleHook(void) {}
 
+#include <assert.h>
 #include <stdio.h>
-#include "events.h"
-#include "events.c"
 
-void cb_1 (event_param_t param) {
-    printf("cb1 %d\n", param.v);
+#include "FreeRTOS.h"
+#include "task.h"
+
+#include "events.h"
+#include "app.c"
+
+void events_task (void* pvParameters) {
+    E_scheduler();
+    vTaskEndScheduler();
 }
 
 int main( void )
 {
-    listener_add(1, cb_1);
-
-    queue_put(1, (event_param_t)1, 0, NULL);
-    queue_put(1, (event_param_t)2, 0, NULL);
-
-    scheduler();
+    void* xHandle = NULL;
+    app_init();
+    xTaskCreate(events_task, "EVENTS", 100, NULL, tskIDLE_PRIORITY, &xHandle);
+    assert(xHandle != NULL);
+    vTaskStartScheduler();
+    assert(app_ret == 15);  /* apenas para testes */
+    printf("OK\n");
+    return 0;
 }

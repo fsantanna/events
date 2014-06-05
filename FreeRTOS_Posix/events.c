@@ -1,7 +1,18 @@
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
 #include "events.h"
+
+#ifdef DEBUG
+#include <assert.h> // TODO
+#endif
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "FreeRTOS.h"
+#include "semphr.h"
+
+static xSemaphoreHandle MUTEX = NULL;
+static E_panic_t PANIC = NULL;
 
 /* event_t
  * Represents an occuring event.
@@ -11,22 +22,22 @@
          * e.g. EVT_TIMER, EVT_LUA, EVT_GPIO
          */
 typedef struct {
-    event_id_t    id;
-    event_param_t param;
-    int16_t       sz;   /* signed because of fill */
-    char          buf[0];
+    E_event_id_t    id;
+    E_event_param_t param;
+    int16_t         sz;   /* signed because of fill */
+    char            buf[0];
 } event_t;
 
 #define QUEUE_MAX 256
 
-char    QUEUE[QUEUE_MAX];
-int     QUEUE_tot = 0;
-uint8_t QUEUE_get = 0;      /* u8 because of 256 max */
-uint8_t QUEUE_put = 0;
+static char    QUEUE[QUEUE_MAX];
+static int     QUEUE_tot = 0;
+static uint8_t QUEUE_get = 0;      /* u8 because of 256 max */
+static uint8_t QUEUE_put = 0;
 
-event_t* queue_get (void) {
+static event_t* queue_get (void) {
     event_t* ret;
-    //CEU_ISR_OFF();
+    xSemaphoreTake(MUTEX, portMAX_DELAY);
     if (QUEUE_tot == 0) {
         ret = NULL;
     } else {
@@ -35,26 +46,28 @@ event_t* queue_get (void) {
 #endif
         ret = (event_t*) &QUEUE[QUEUE_get];
     }
-    //CEU_ISR_ON();
+    xSemaphoreGive(MUTEX);
     return ret;
 }
 
-/* TODO: retorno "int" assume que o usuario vai ter o que fazer, caso 0 */
-int queue_put (event_id_t id, event_param_t param,
-               int sz, char* buf) {
-    //CEU_ISR_OFF();
+void E_queue_put (E_event_id_t id, E_event_param_t param,
+                  int sz, char* buf) {
+    xSemaphoreTake(MUTEX, portMAX_DELAY);
 
     int n = sizeof(event_t) + sz;
 
-    if (QUEUE_tot+n > QUEUE_MAX)
-        return 0;   /* TODO: add event FULL when QUEUE_MAX-1 */
+    if (QUEUE_tot+n > QUEUE_MAX) {
+        xSemaphoreGive(MUTEX);
+        PANIC(E_ERR_QUEUE_PUT);
+        return;
+    }
 
     /* An event+data must be continuous in the QUEUE. */
-    if (QUEUE_put+n+sizeof(event_t)>=QUEUE_MAX && id!=EVT_NONE) {
+    if (QUEUE_put+n+sizeof(event_t)>=QUEUE_MAX && id!=E_EVT_NONE) {
         int fill = QUEUE_MAX - QUEUE_put - sizeof(event_t);
-        /*_ceu_sys_emit(app, EVT_NONE, param, fill, NULL);*/
+        /*_ceu_sys_emit(app, E_EVT_NONE, param, fill, NULL);*/
         event_t* evt = (event_t*) &QUEUE[QUEUE_put];
-        evt->id = EVT_NONE;
+        evt->id = E_EVT_NONE;
         evt->sz  = fill;
         QUEUE_put += sizeof(event_t) + fill;
         QUEUE_tot += sizeof(event_t) + fill;
@@ -77,31 +90,33 @@ int queue_put (event_id_t id, event_param_t param,
     QUEUE_put += n;
     QUEUE_tot += n;
 
-    //CEU_ISR_ON();
-    return 1;
+    xSemaphoreGive(MUTEX);
 }
 
-void queue_rem (void) {
-    //CEU_ISR_OFF();
+static void queue_rem (void) {
+    xSemaphoreTake(MUTEX, portMAX_DELAY);
     event_t* evt = (event_t*) &QUEUE[QUEUE_get];
     QUEUE_tot -= sizeof(event_t) + evt->sz;
     QUEUE_get += sizeof(event_t) + evt->sz;
-    //CEU_ISR_ON();
+    xSemaphoreGive(MUTEX);
 }
 
 typedef struct listener_t {
-    event_id_t         id;
-    callback_t         cb;
+    E_event_id_t       id;
+    E_callback_t       cb;
     struct listener_t* prv;
     struct listener_t* nxt;
 } listener_t;
 
-listener_t* LISTENERS = NULL;
+static listener_t* LISTENERS = NULL;
 
 /* ponto de falha! */
-void listener_add (event_id_t id, callback_t cb) {
+void E_listener_add (E_event_id_t id, E_callback_t cb) {
     listener_t* l = (listener_t*) malloc(sizeof(listener_t));
-    assert(l != NULL);
+    if (l == NULL) {
+        PANIC(E_ERR_LISTENER_ADD);
+    }
+
     if (LISTENERS == NULL) {
         LISTENERS = l;
     } else {
@@ -114,7 +129,7 @@ void listener_add (event_id_t id, callback_t cb) {
     l->cb  = cb;
 }
 
-void listener_rem (listener_t* l) {
+static void listener_rem (listener_t* l) {
     if (LISTENERS == l) {
         LISTENERS = NULL;
     } else {
@@ -123,21 +138,36 @@ void listener_rem (listener_t* l) {
     free(l);
 }
 
-void scheduler (void)
+void E_listener_rem (E_event_id_t id, E_callback_t cb) {
+    listener_t* l = LISTENERS;
+    while (l != NULL) {
+        if ((l->id==id || id==E_EVT_NONE) && (l->cb==NULL || l->cb==cb)) {
+            listener_rem(l);
+        }
+        l = l->nxt;
+    }
+}
+
+void E_init (E_panic_t cb) {
+    MUTEX = xSemaphoreCreateMutex();
+    assert(MUTEX != NULL);
+    PANIC = cb;
+}
+
+void E_scheduler (void)
 {
     while (1)
     {
-        /* clear the current size (ignore events emitted here) */
-        //CEU_ISR_OFF();
+        xSemaphoreTake(MUTEX, portMAX_DELAY);
         int has = QUEUE_tot;
-        //CEU_ISR_ON();
+        xSemaphoreGive(MUTEX);
         if (! has) {
             // TODO: conditional variable?
             continue;
         }
 
         event_t* evt = queue_get();
-        if (evt->id == EVT_NONE) {
+        if (evt->id == E_EVT_NONE) {
             /* nothing; */
             /* "fill event" */
 
@@ -152,6 +182,10 @@ void scheduler (void)
         }
 
         queue_rem();
+
+        if (evt->id == E_EVT_QUIT) {
+            break;
+        }
     }
 }
 
