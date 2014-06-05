@@ -19,17 +19,16 @@ void timer_start_cb (E_event_param_t param) {
     }
 
     dt = param.v;
-printf("DT %d\n", dt);
 }
 
 void timer_task (void* pvParameters) {
     for (;;) {
-        vTaskDelay(100);
+        vTaskDelay(10);
         if (dt == 0) continue;// { printf("DT=%d\n",dt); };
         //while (dt == 0);// { printf("DT=%d\n",dt); };
-        vTaskDelay(300*dt / 1000);
+        vTaskDelay(200*dt / 1000);
             /* vTaskDelay suspende pelo numero de "ticks".
-             * Aparentemente 1s = 300ticks */
+             * Aparentemente 1s = 200ticks */
         E_queue_put(E_EVT_TIMER_IN_EXPIRED, (E_event_param_t)0, 0, NULL);
     }
 }

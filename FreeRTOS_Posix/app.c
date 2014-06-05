@@ -24,8 +24,8 @@ void cb_1 (E_event_param_t param) {
 }
 
 void cb_timer (E_event_param_t param) {
-    printf("cb_timer\n");
-    E_queue_put(E_EVT_QUIT, (E_event_param_t)0, 0, NULL);
+    //printf("cb_timer\n");
+    //E_queue_put(E_EVT_QUIT, (E_event_param_t)0, 0, NULL);
 }
 
 void app_init (void) {
