@@ -50,8 +50,7 @@ static event_t* queue_get (void) {
     return ret;
 }
 
-void E_queue_put (E_event_id_t id, E_event_param_t param,
-                  int sz, char* buf) {
+void E_queue_put (E_event_id_t id, E_event_param_t param, int sz) {
     xSemaphoreTake(MUTEX, portMAX_DELAY);
 
     int n = sizeof(event_t) + sz;
@@ -80,11 +79,11 @@ void E_queue_put (E_event_id_t id, E_event_param_t param,
 
         if (sz == 0) {
             /* "param" is self-contained */
-            evt->param = param;
+            evt->param.v = param.v;
         } else {
             /* "param" points to "buf" */
+            memcpy(evt->buf, param.ptr, sz);
             evt->param.ptr = evt->buf;
-            memcpy(evt->buf, buf, sz);
         }
     }
     QUEUE_put += n;

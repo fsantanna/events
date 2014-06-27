@@ -23,7 +23,7 @@ static int l_post (lua_State* L) {
     const char* evt = lua_tostring(L,-2);
     if (!strncmp(evt, "E_EVT_TIMER_OUT_START", 30)) {
         int timer = lua_tonumber(L,-1);
-        E_queue_put(E_EVT_TIMER_OUT_START, (E_event_param_t)timer, 0, NULL);
+        E_queue_put(E_EVT_TIMER_OUT_START, (E_event_param_t)timer, 0);
     } else {
         // TODO
     }
