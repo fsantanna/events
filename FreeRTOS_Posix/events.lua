@@ -12,7 +12,7 @@ function events.unlisten (id, cb)
     -- ao contrario por causa do remove
     for i=#listeners, 1, -1 do
         local t = listeners[i]
-        if (t.id==id or id=='E_EVT_NONE') and (t.cb==nil or t.cb==cb) then
+        if (t.id==id or id=='EVT_NONE') and (t.cb==nil or t.cb==cb) then
             table.remove(listeners, i)
         end
     end

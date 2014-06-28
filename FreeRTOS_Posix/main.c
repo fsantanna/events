@@ -13,7 +13,7 @@ void vApplicationIdleHook(void) {}
 #include "app.c"
 
 void events_task (void* pvParameters) {
-    E_scheduler();
+    evt_scheduler();
     vTaskEndScheduler();
 }
 

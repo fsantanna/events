@@ -13,7 +13,7 @@
 
 static lua_State* L = NULL;
 
-static void cb_file (E_event_param_t param) {
+static void cb_file (evt_param_t param) {
     int ok = luaL_dofile(L, (char*)param.ptr);
     // TODO: ok (generate ERR with error message)
 }
@@ -21,9 +21,9 @@ static void cb_file (E_event_param_t param) {
 static int l_post (lua_State* L) {
     // TODO: check all lua returns
     const char* evt = lua_tostring(L,-2);
-    if (!strncmp(evt, "E_EVT_TIMER_OUT_START", 30)) {
+    if (!strncmp(evt, "EVT_TIMER_OUT_START", 30)) {
         int timer = lua_tonumber(L,-1);
-        E_queue_put(E_EVT_TIMER_OUT_START, (E_event_param_t)timer, 0);
+        evt_queue_put(EVT_TIMER_OUT_START, (evt_param_t)timer, 0);
     } else {
         // TODO
     }
@@ -32,10 +32,10 @@ static int l_post (lua_State* L) {
 
 /* Para cada evento exportado para Lua, ouvi-lo e mapea-lo para 
  * "events.dispatch()" */
-static void cb_e_evt_timer_in_expired (E_event_param_t param) {
+static void cb_e_evt_timer_in_expired (evt_param_t param) {
     lua_getglobal(L, "events");         // [ events ]
     lua_getfield(L, -1, "dispatch");    // [ events | dispatch ]
-    lua_pushstring(L, "E_EVT_TIMER_IN_EXPIRED");    // [ ...   | id ]
+    lua_pushstring(L, "EVT_TIMER_IN_EXPIRED");    // [ ...   | id ]
     lua_call(L, 1, 0);                  // [ events ]
     lua_pop(L, 1);                      // [ ]
         // TODO: testar retorno
@@ -52,7 +52,7 @@ void ext_lua_init (void) {
     lua_setfield(L, -2, "post");    // [ events ]
     lua_pop(L, 1);                  // [ ]
 
-    E_listener_add(E_EVT_LUA_OUT_FILE, cb_file);
+    evt_listener_add(EVT_LUA_OUT_FILE, cb_file);
 
-    E_listener_add(E_EVT_TIMER_IN_EXPIRED, cb_e_evt_timer_in_expired);
+    evt_listener_add(EVT_TIMER_IN_EXPIRED, cb_e_evt_timer_in_expired);
 }

@@ -7,29 +7,29 @@
 
 /*
  * Eventos pre-definidos.
- * Os eventos das extensões vão de `E_EVT` em diante (veja app.h).
+ * Os eventos das extensões vão de `EVT` em diante (veja app.h).
  */
 
 enum {
-    E_EVT_NONE = 0,
-    E_EVT_QUIT,
-    E_EVT,
+    EVT_NONE = 0,
+    EVT_QUIT,
+    EVT,
 };
 
 /*
  * Eventos de "panic".
  * Não vão pela fila, em vez disso, chamam a função de pânico setada em 
- * `E_init´.
+ * `evt_init´.
  */
 
 enum {
-    E_ERR_LISTENER_ADD = 1,
-    E_ERR_QUEUE_PUT,
+    EVT_ERR_LISTENER_ADD = 1,
+    EVT_ERR_QUEUE_PUT,
 };
 
 /* Tipo para os identificadores de eventos. */
 
-typedef uint8_t E_event_id_t;
+typedef uint8_t evt_id_t;
          /* at most 255 different event types (0 is reserved) */
 
 /*
@@ -41,26 +41,49 @@ typedef uint8_t E_event_id_t;
 typedef union {
     int   v;
     void* ptr;
-} E_event_param_t;
+} evt_param_t;
 
 /*
  * Insere um evento na fila.
  *      - id:    identificador do event
  *      - param: payload do evento
- *      - sz:    no caso .
- *      - buf:   .
+ *      - sz:    0, caso payload seja "int"; tamanho do payload, caso seja ponteiro
+ * Note que o payload do evento é copiado inteiramente para a fila (i.e. quem 
+ * gera o evento não precisa manter o payload em memória).
  * Função é thread safe.
  */
 
-void E_queue_put (E_event_id_t id, E_event_param_t param, int sz);
+void evt_queue_put (evt_id_t id, evt_param_t param, int sz);
 
-typedef void (*E_callback_t) (E_event_param_t);
+/* Tipo para callbacks de evento (uma função que recebe o evento ocorrendo como parâmetro).  */
 
-void E_listener_add (E_event_id_t id, E_callback_t cb);
-void E_listener_rem (E_event_id_t id, E_callback_t cb);
+typedef void (*evt_cb_t) (evt_param_t);
 
-typedef void (*E_panic_t) (int);
-void E_init (E_panic_t);
-void E_scheduler (void);
+/*
+ * Adiciona e remove um listener de eventos.
+ *  - add: sempre que `id` ocorrer, `cb` é chamada
+ *  - rem: `cb` não mais é executada quando `id` ocorrer
+ */
+
+void evt_listener_add (evt_id_t id, evt_cb_t cb);
+void evt_listener_rem (evt_id_t id, evt_cb_t cb);
+
+/* Tipo da função de pânico. */
+
+typedef void (*evt_panic_t) (int);
+
+/*
+ * Inicializa a biblioteca de eventos.
+ *  - cb: callback de pânico
+ */
+
+void evt_init (evt_panic_t);
+
+/*
+ * Executa o scheduler (dispatcher) com o loop de eventos.
+ * Termina quando um evento do tipo `EVT_QUIT` é gerado.
+ */
+
+void evt_scheduler (void);
 
 #endif
