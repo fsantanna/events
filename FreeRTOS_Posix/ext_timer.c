@@ -17,7 +17,6 @@ void timer_start_cb (evt_param_t param) {
         evt_queue_put(EVT_TIMER_IN_BUSY, (evt_param_t)0, 0);
         return;
     }
-
     dt = param.v;
 }
 
@@ -30,6 +29,7 @@ void timer_task (void* pvParameters) {
             /* vTaskDelay suspende pelo numero de "ticks".
              * Aparentemente 1s = 200ticks */
         evt_queue_put(EVT_TIMER_IN_EXPIRED, (evt_param_t)0, 0);
+        dt = 0;
     }
 }
 

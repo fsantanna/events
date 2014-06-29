@@ -1,10 +1,20 @@
 #ifndef _APP_H
 #define _APP_H
 
-/* define as extensões a serem utilizadas na aplicação */
+/* Define as extensões a serem utilizadas na aplicação: */
 
 #define EXT_TIMER
 #define EXT_LUA
+
+/*
+ * Define os eventos disponíveis na aplicação:
+ * EVT_<EXT>_<DIR>_<NAME>
+ *      - <EXT>: nome da extensão que manipula o evento
+ *      - <DIR>: direção do evento do ponto de vista da aplicação:
+ *          - OUT: a aplicação emite um evento na direção da extenção
+ *          - IN:  a extenção emite um evento na direção da aplicação
+ *      - <NAME>: nome do evento
+ */
 
 enum {
     EVT_TEST = EVT,     /* pula os eventos já definidos em "events.h" */
@@ -12,14 +22,14 @@ enum {
     /* cada extensão tem um conjunto de eventos */
 
 #ifdef EXT_LUA
-    EVT_LUA_OUT_FILE,
-    EVT_LUA_OUT_STRING,
+    EVT_LUA_OUT_FILE,       /* executa um arquivo */
+    EVT_LUA_OUT_STRING,     /* executa uma string */
 #endif
 
 #ifdef EXT_TIMER
-    EVT_TIMER_OUT_START,
-    EVT_TIMER_IN_BUSY,
-    EVT_TIMER_IN_EXPIRED,
+    EVT_TIMER_OUT_START,    /* inicia um timer */
+    EVT_TIMER_IN_BUSY,      /* status de retorno do START */
+    EVT_TIMER_IN_EXPIRED,   /* timer expirou após START */
 #endif
 };
 

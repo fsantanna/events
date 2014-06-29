@@ -18,6 +18,8 @@ function timer (v)
     coroutine.yield()
 end
 
+-- Crio uma "main" que chama a "timer" bloqueante que esconde as callbacks e corrotinas.
+
 local main = coroutine.wrap(
     function ()
         print 'inicio'

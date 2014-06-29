@@ -14,18 +14,15 @@
 static xSemaphoreHandle MUTEX = NULL;
 static evt_panic_t      PANIC = NULL;
 
-/* event_t
+/*
+ * event_t:
  * Represents an occuring event.
  */
-
-        /* event id (or type)
-         * e.g. EVT_TIMER, EVT_LUA, EVT_GPIO
-         */
 typedef struct {
-    evt_id_t    id;
-    evt_param_t param;
-    int16_t     sz;   /* signed because of fill */
-    char        buf[0];
+    evt_id_t    id;         /* event id (e.g. EVT_TIMER_IN_EXPIRED) */
+    evt_param_t param;      /* event payload */
+    int16_t     sz;         /* size of payload */
+    char        buf[0];     /* payload if sz>0 (param points here) */
 } event_t;
 
 #define QUEUE_MAX 256
