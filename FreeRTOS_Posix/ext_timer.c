@@ -12,12 +12,18 @@
 static int dt = 0;
 
 #include <stdio.h>
+
 void timer_start_cb (evt_param_t param) {
     if (dt != 0) {
         evt_queue_put(EVT_TIMER_IN_BUSY, (evt_param_t)0, 0);
         return;
     }
     dt = param.v;
+}
+
+void timer_stop_cb (evt_param_t param) {
+printf("TIMER STOP\n");
+    dt = -1;
 }
 
 void timer_task (void* pvParameters) {
@@ -28,6 +34,8 @@ void timer_task (void* pvParameters) {
         vTaskDelay(200*dt / 1000);
             /* vTaskDelay suspende pelo numero de "ticks".
              * Aparentemente 1s = 200ticks */
+        if (dt == -1) continue;  // pode ter sido cancelado (TODO: incompleto!)
+printf("EXP\n");
         evt_queue_put(EVT_TIMER_IN_EXPIRED, (evt_param_t)0, 0);
         dt = 0;
     }
@@ -36,6 +44,7 @@ void timer_task (void* pvParameters) {
 void ext_timer_init (void) {
     void* xHandle = NULL;
     evt_listener_add(EVT_TIMER_OUT_START, timer_start_cb);
+    evt_listener_add(EVT_TIMER_OUT_STOP,  timer_stop_cb);
     xTaskCreate(timer_task, "TIMER", 100, &dt, tskIDLE_PRIORITY, &xHandle);
     assert(xHandle != NULL);
 }

@@ -20,12 +20,15 @@ static void cb_file (evt_param_t param) {
 
 static int l_post (lua_State* L) {
     // TODO: check all lua returns
-    const char* evt = lua_tostring(L,-2);
+    const char* evt = lua_tostring(L,1);
     if (!strncmp(evt, "EVT_TIMER_OUT_START", 30)) {
         int timer = lua_tonumber(L,-1);
         evt_queue_put(EVT_TIMER_OUT_START, (evt_param_t)timer, 0);
+    } else if (!strncmp(evt, "EVT_TIMER_OUT_STOP", 30)) {
+        evt_queue_put(EVT_TIMER_OUT_STOP, (evt_param_t)0, 0);
     } else {
         // TODO
+        printf("UNKOWN EVENT\n");
     }
     return 0;
 }

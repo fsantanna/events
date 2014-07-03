@@ -3,8 +3,9 @@
 
 /* Define as extensões a serem utilizadas na aplicação: */
 
-#define EXT_TIMER
 #define EXT_LUA
+#define EXT_TIMER
+#define EXT_BUTTON
 
 /*
  * Define os eventos disponíveis na aplicação:
@@ -27,9 +28,14 @@ enum {
 #endif
 
 #ifdef EXT_TIMER
-    EVT_TIMER_OUT_START,    /* inicia um timer */
+    EVT_TIMER_OUT_START,    /* inicia o timer */
+    EVT_TIMER_OUT_STOP,     /* cancela o timer */
     EVT_TIMER_IN_BUSY,      /* status de retorno do START */
     EVT_TIMER_IN_EXPIRED,   /* timer expirou após START */
+#endif
+
+#ifdef EXT_BUTTON
+    EVT_BUTTON_IN_PRESSED,  /* o botão foi pressionado */
 #endif
 };
 
