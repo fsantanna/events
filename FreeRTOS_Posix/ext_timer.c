@@ -22,7 +22,7 @@ void timer_start_cb (evt_param_t param) {
 }
 
 void timer_stop_cb (evt_param_t param) {
-printf("TIMER STOP\n");
+    // TODO: incompleto (deveria interromper)
     dt = -1;
 }
 
@@ -34,8 +34,7 @@ void timer_task (void* pvParameters) {
         vTaskDelay(200*dt / 1000);
             /* vTaskDelay suspende pelo numero de "ticks".
              * Aparentemente 1s = 200ticks */
-        if (dt == -1) continue;  // pode ter sido cancelado (TODO: incompleto!)
-printf("EXP\n");
+        if (dt == -1) continue;
         evt_queue_put(EVT_TIMER_IN_EXPIRED, (evt_param_t)0, 0);
         dt = 0;
     }

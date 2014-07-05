@@ -39,3 +39,18 @@ end
 function sync_timer (v)
     return async_timer(v).sync()
 end
+
+--[[
+-- Implementação mais simples de "sync_timer".
+function timer (v)
+    events.post('EVT_TIMER_OUT_START', v)
+    local co = coroutine.running()
+    local cb
+    cb = function ()
+            events.unlisten(nil,cb)
+            coroutine.resume(co)
+         end
+    events.listen('EVT_TIMER_IN_EXPIRED', cb)
+    coroutine.yield()
+end
+]]
