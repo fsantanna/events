@@ -3,20 +3,26 @@ events = {
 
 local listeners = {}
 
-function events.listen (id, cb, isSpawn)
-    local t = { id, cb, isSpawn }
+function events.listen (id, cb, isSpawn, ...)
+    local t = { id, cb, isSpawn, ... }
     listeners[#listeners + 1] = t
 end
 
-function events.listen_and_spawn (id, cb)
-    return events.listen(id, cb, true)
+function events.listen_and_spawn (id, cb, ...)
+    local var_env = debug.getupvalue(cb, 2)
+    if var_env then
+        local var = debug.getupvalue(cb, 1)
+        error('callback cannot hold upvalues: "'..var..'"')
+    end
+    return events.listen(id, cb, true, ...)
 end
 
 function events.unlisten (id, cb)
     -- percorre ao contrario por causa do remove
     for i=#listeners, 1, -1 do
         local t = listeners[i]
-        if (t.id==id or id=='EVT_NONE') and (t.cb==nil or t.cb==cb) then
+        local id_, cb_, isSpawn = unpack(t)
+        if (id_==id or id=='EVT_NONE') and (cb==nil or cb_==cb) then
             table.remove(listeners, i)
         end
     end
@@ -28,17 +34,20 @@ end
 local __cbs = {}
 
 function events.dispatch (id, param)
+    local I = 0
     for _, t in ipairs(listeners) do
         local id_, cb, isSpawn = unpack(t)
         if id == id_ then
-            if isSpawn then
-                cb = coroutine.wrap(cb)
-            end
-            __cbs[#__cbs + 1] = cb
+            I = I + 1
+            __cbs[I] = t
         end
     end
-    for i=1, #__cbs do
-        __cbs[i](param)
-        __cbs[i] = nil
+    for i=1, I do
+        local t = __cbs[i]
+        local id, cb, isSpawn = unpack(t)
+        if isSpawn then
+            cb = coroutine.wrap(cb)
+        end
+        cb(param, select(4,unpack(t)))
     end
 end

@@ -25,7 +25,7 @@ typedef struct {
     char        buf[0];     /* payload if sz>0 (param points here) */
 } event_t;
 
-#define QUEUE_MAX 256
+#define QUEUE_MAX 65536
 
 static char    QUEUE[QUEUE_MAX];
 static int     QUEUE_tot = 0;
@@ -98,49 +98,66 @@ static void queue_rem (void) {
 }
 
 typedef struct listener_t {
-    evt_id_t       id;
-    evt_cb_t       cb;
-    struct listener_t* prv;
+    evt_id_t id;
+    evt_cb_t cb;
+    int8_t   isAlive;
     struct listener_t* nxt;
 } listener_t;
 
-static listener_t* LISTENERS = NULL;
+static listener_t* FIRST = NULL;
+static listener_t* LAST  = NULL;
 
 /* ponto de falha! */
 void evt_listener_add (evt_id_t id, evt_cb_t cb) {
     listener_t* l = (listener_t*) malloc(sizeof(listener_t));
     if (l == NULL) {
         PANIC(EVT_ERR_LISTENER_ADD);
+        return;
     }
 
-    if (LISTENERS == NULL) {
-        LISTENERS = l;
+    if (FIRST == NULL) {
+        FIRST = LAST = l;
     } else {
-        l->prv = LISTENERS->prv;    /* previous last listener */
-        LISTENERS->prv->nxt = l;    /* now points to "l" */
+        LAST->nxt = l;
+        LAST = l;
     }
-    LISTENERS->prv = l;             /* "l" is the new last */
     l->nxt = NULL;
     l->id  = id;
     l->cb  = cb;
-}
-
-static void listener_rem (listener_t* l) {
-    if (LISTENERS == l) {
-        LISTENERS = NULL;
-    } else {
-        l->prv->nxt = l->nxt;
-    }
-    free(l);
+    l->isAlive = 1;
 }
 
 void evt_listener_rem (evt_id_t id, evt_cb_t cb) {
-    listener_t* l = LISTENERS;
+    listener_t* l = FIRST;
     while (l != NULL) {
         if ((l->id==id || id==EVT_NONE) && (l->cb==NULL || l->cb==cb)) {
-            listener_rem(l);
+            l->isAlive = 0;
         }
         l = l->nxt;
+    }
+}
+
+void __gc () {
+    listener_t *prv, *cur, *nxt;
+    prv = NULL;
+    cur = FIRST;
+    while (cur != NULL) {
+        nxt = cur->nxt;
+        if (! cur->isAlive) {
+            if (cur == FIRST) {
+                FIRST = nxt;
+            }
+            if (cur == LAST) {
+                LAST = prv;
+            }
+            if (prv != NULL) {
+                prv->nxt = nxt;
+            }
+            free(cur);
+        } else {
+            prv = cur;
+        }
+        cur = nxt;
     }
 }
 
@@ -168,13 +185,14 @@ void evt_scheduler (void)
             /* "fill event" */
 
         } else {
-            listener_t* l = LISTENERS;
+            listener_t* l = FIRST;
             while (l != NULL) {
-                if (l->id == evt->id) {
+                if (l->isAlive && l->id==evt->id) {
                     l->cb(evt->param);
                 }
                 l = l->nxt;
             }
+            __gc();
         }
 
         queue_rem();

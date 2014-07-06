@@ -6,8 +6,18 @@
 
 /* Inclui as extenções utilizadas na aplicação. */
 
-#include "ext_timer.h"
+#ifdef EXT_LUA
 #include "ext_lua.h"
+#endif
+#ifdef EXT_TIMER
+#include "ext_timer.h"
+#endif
+#ifdef EXT_SEND
+#include "ext_send.h"
+#endif
+#ifdef EXT_CONSOLE
+#include "ext_console.h"
+#endif
 
 int app_ret = 1;
 
@@ -39,17 +49,30 @@ void cb_timer_busy (evt_param_t param) {
     printf("cb_timer_busy\n");
 }
 
+#ifdef EXT_LUA
+void cb_lua_err (evt_param_t param) {
+    printf("LUA ERROR: %s\n", (char*)param.ptr);
+}
+#endif
+
 void app_init (void)
 {
     /* inicializa a biblioteca de eventos com uma função de pânico */
     evt_init(panic);
 
     /* inicializa as extensões utilizadas */
+#ifdef EXT_LUA
+    ext_lua_init();
+    evt_listener_add(EVT_LUA_IN_ERR, cb_lua_err);
+#endif
 #ifdef EXT_TIMER
     ext_timer_init();
 #endif
-#ifdef EXT_LUA
-    ext_lua_init();
+#ifdef EXT_SEND
+    ext_send_init();
+#endif
+#ifdef EXT_CONSOLE
+    ext_console_init();
 #endif
 
     /* Cria a aplicação, i.e., interliga as extensões que passam a se

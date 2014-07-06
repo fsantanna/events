@@ -14,7 +14,7 @@ function async_timer (v)
             _ret = v
             events.unlisten(nil,cb)
             if _awaiting then
-                coroutine.resume(_co)
+                assert(coroutine.resume(_co))
             end
          end
     events.listen('EVT_TIMER_IN_EXPIRED', cb)

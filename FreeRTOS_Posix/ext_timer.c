@@ -34,8 +34,9 @@ void timer_task (void* pvParameters) {
         vTaskDelay(200*dt / 1000);
             /* vTaskDelay suspende pelo numero de "ticks".
              * Aparentemente 1s = 200ticks */
-        if (dt == -1) continue;
-        evt_queue_put(EVT_TIMER_IN_EXPIRED, (evt_param_t)0, 0);
+        if (dt != -1) {
+            evt_queue_put(EVT_TIMER_IN_EXPIRED, (evt_param_t)0, 0);
+        }
         dt = 0;
     }
 }
@@ -44,6 +45,6 @@ void ext_timer_init (void) {
     void* xHandle = NULL;
     evt_listener_add(EVT_TIMER_OUT_START, timer_start_cb);
     evt_listener_add(EVT_TIMER_OUT_STOP,  timer_stop_cb);
-    xTaskCreate(timer_task, "TIMER", 100, &dt, tskIDLE_PRIORITY, &xHandle);
+    xTaskCreate(timer_task, (const signed char * const)"TIMER", 100, NULL, tskIDLE_PRIORITY, &xHandle);
     assert(xHandle != NULL);
 }

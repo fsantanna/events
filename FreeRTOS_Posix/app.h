@@ -5,6 +5,8 @@
 
 #define EXT_LUA
 #define EXT_TIMER
+#define EXT_SEND
+#define EXT_CONSOLE
 #define EXT_BUTTON
 
 /*
@@ -25,6 +27,7 @@ enum {
 #ifdef EXT_LUA
     EVT_LUA_OUT_FILE,       /* executa um arquivo */
     EVT_LUA_OUT_STRING,     /* executa uma string */
+    EVT_LUA_IN_ERR,         /* erro de execução */
 #endif
 
 #ifdef EXT_TIMER
@@ -32,6 +35,13 @@ enum {
     EVT_TIMER_OUT_STOP,     /* cancela o timer */
     EVT_TIMER_IN_BUSY,      /* status de retorno do START */
     EVT_TIMER_IN_EXPIRED,   /* timer expirou após START */
+#endif
+
+#ifdef EXT_SEND
+    EVT_SEND_OUT_START,     /* inicia o envio */
+    EVT_SEND_OUT_STOP,      /* cancela o envio */
+    EVT_SEND_IN_BUSY,       /* status de retorno do START */
+    EVT_SEND_IN_ACK,        /* envio com sucesso */
 #endif
 
 #ifdef EXT_BUTTON
