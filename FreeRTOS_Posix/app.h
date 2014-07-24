@@ -27,6 +27,7 @@ enum {
 #ifdef EXT_LUA
     EVT_LUA_OUT_FILE,       /* executa um arquivo */
     EVT_LUA_OUT_STRING,     /* executa uma string */
+    EVT_LUA_IN_ACK,         /* retorno de dofile/dostring */
     EVT_LUA_IN_ERR,         /* erro de execução */
 #endif
 

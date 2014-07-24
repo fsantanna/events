@@ -17,24 +17,26 @@
 
 static lua_State* L = NULL;
 
-static void cb_file (evt_param_t param) {
-    int err = luaL_dofile(L, (char*)param.ptr);
-    if (err != 0) {                     // [ events | err_msg ]
-        const char* err_msg = lua_tostring(L, -1);
-        evt_queue_put(EVT_LUA_IN_ERR, (evt_param_t)(void*)err_msg,
-                                      strlen(err_msg));
-        lua_pop(L, 1);                  // [ events ]
+static void cb_file_string (int err) {
+    evt_lua_in_ack_t ret;
+    ret.err = err;
+    if (err != 0) {                     // [ ... | msg ]
+        const char* msg = lua_tostring(L, -1);
+        strncpy(ret.msg, msg, EVT_LUA_IN_ACK_MSG_MAX);
+        lua_pop(L, 1);                  // [ ... ]
     }
+    evt_queue_put(EVT_LUA_IN_ACK, (evt_param_t)(void*)&ret,
+                                  sizeof(evt_lua_in_ack_t));
+}
+
+static void cb_file (evt_param_t param) {
+    int err = luaL_dofile(L, (char*)param.ptr);     // [ ... | str? ]
+    cb_file_string(err);
 }
 
 static void cb_string (evt_param_t param) {
     int err = luaL_dostring(L, (char*)param.ptr);
-    if (err != 0) {                     // [ events | err_msg ]
-        const char* err_msg = lua_tostring(L, -1);
-        evt_queue_put(EVT_LUA_IN_ERR, (evt_param_t)(void*)err_msg,
-                                      strlen(err_msg)+1);
-        lua_pop(L, 1);                  // [ events ]
-    }
+    cb_file_string(err);
 }
 
 static int l_post (lua_State* L) {
