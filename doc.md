@@ -1,4 +1,4 @@
-= Quick Start
+# Quick Start
 
 ```
 > git clone https://github.com/fsantanna/events
@@ -9,14 +9,14 @@
 > cd -
 
 > cd events/FreeRTOS_Posix/Release/
-> make
+> make      # ignorar o erro
 
 # repetir para cada modificacao
 > ./compile.sh
 > ./FreeRTOS_Posix
 ```
 
-= Código fonte
+# Código fonte
 
 * main.c
     Entry point do FreeRTOS.
