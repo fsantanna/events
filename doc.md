@@ -47,12 +47,10 @@
 * events.h
     Declara as funções e tipos os quais as extensões dependem (e.g.  `evt_listener_add`).
 
-* ext_*.c
-    Define uma extensão e exporta uma única função `ext_*_init` que deve ser 
-chamada em `app_init`.
-    A extensão deve incluir as definições das extensões com as quais se 
-comunica para ter acesso aos tipos que ela define.
-* ext_*.h
+* ext_(...).c
+    Define uma extensão e exporta uma única função `ext_(...)_init` que deve ser chamada em `app_init`.
+    A extensão deve incluir as definições das extensões com as quais se comunica para ter acesso aos tipos que ela define.
+* ext_(...).h
     Declara a função de inicialização da extensão e seus tipos de eventos.
 
 * compile.sh
