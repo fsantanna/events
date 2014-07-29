@@ -28,9 +28,9 @@ typedef struct {
 #define QUEUE_MAX 65536
 
 static char    QUEUE[QUEUE_MAX];
-static int     QUEUE_tot = 0;
-static uint8_t QUEUE_get = 0;      /* u8 because of 256 max */
-static uint8_t QUEUE_put = 0;
+static int32_t QUEUE_tot = 0;
+static int16_t QUEUE_get = 0;      /* s16 because of 65536 max */
+static int16_t QUEUE_put = 0;
 
 static event_t* queue_get (void) {
     event_t* ret;

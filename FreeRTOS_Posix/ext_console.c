@@ -27,7 +27,7 @@ static int incomplete (const char* msg) {
     return 0;  /* else... */
 }
 
-void cb_lua_ack (evt_param_t param) {
+static void cb_lua_ack (evt_param_t param) {
     evt_lua_in_ack_t* ret = (evt_lua_in_ack_t*) param.ptr;
     if (ret->err) {
         if (incomplete(ret->msg)) {

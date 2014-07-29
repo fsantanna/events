@@ -14,30 +14,30 @@ static int dt = 0;
 #include <stdio.h>
 
 void timer_start_cb (evt_param_t param) {
-    if (dt != 0) {
+    if (dt > 0) {
         evt_queue_put(EVT_TIMER_IN_BUSY, (evt_param_t)0, 0);
         return;
     }
-    dt = param.v;
+    // 1000ms = 100ticks (should be /10 not /3)
+    dt = param.v/3;
 }
 
 void timer_stop_cb (evt_param_t param) {
-    // TODO: incompleto (deveria interromper)
-    dt = -1;
+    dt = 0;
 }
 
 void timer_task (void* pvParameters) {
     for (;;) {
         vTaskDelay(10);
-        if (dt == 0) continue;// { printf("DT=%d\n",dt); };
-        //while (dt == 0);// { printf("DT=%d\n",dt); };
-        vTaskDelay(200*dt / 1000);
-            /* vTaskDelay suspende pelo numero de "ticks".
-             * Aparentemente 1s = 200ticks */
-        if (dt != -1) {
+        if (dt <= 0) {
+            continue;       // not set
+        }
+
+        dt -= 10;
+        if (dt <= 0) {
+            dt = 0;
             evt_queue_put(EVT_TIMER_IN_EXPIRED, (evt_param_t)0, 0);
         }
-        dt = 0;
     }
 }
 

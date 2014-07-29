@@ -20,7 +20,7 @@ static lua_State* L = NULL;
 static void cb_file_string (int err) {
     evt_lua_in_ack_t ret;
     ret.err = err;
-    if (err != 0) {                     // [ ... | msg ]
+    if (err != 0) {                     // [ ... | str ]
         const char* msg = lua_tostring(L, -1);
         strncpy(ret.msg, msg, EVT_LUA_IN_ACK_MSG_MAX);
         lua_pop(L, 1);                  // [ ... ]
@@ -35,7 +35,7 @@ static void cb_file (evt_param_t param) {
 }
 
 static void cb_string (evt_param_t param) {
-    int err = luaL_dostring(L, (char*)param.ptr);
+    int err = luaL_dostring(L, (char*)param.ptr);   // [ ... | str? ]
     cb_file_string(err);
 }
 
