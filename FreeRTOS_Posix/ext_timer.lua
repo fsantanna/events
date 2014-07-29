@@ -43,10 +43,10 @@ end
 
 function timer.fg (dt)
     local co = coroutine.running()
-    local t = timer.cb(dt, function ()
+    local h = timer.cb(dt, function ()
         assert(coroutine.resume(co))
     end)
-    coroutine.yield(t)
+    coroutine.yield(h)
 end
 
 function timer.bg (dt)
@@ -60,8 +60,8 @@ function timer.bg (dt)
             assert(coroutine.resume(state,true))
         end
     end)
-    local ok, t = coroutine.resume(co)      -- result of timer.cb()
-    assert(ok, t)
+    local ok, h = coroutine.resume(co)      -- result of timer.cb()
+    assert(ok, h)
     return {
         fg_done = function ()
             if state == nil then
@@ -75,7 +75,7 @@ function timer.bg (dt)
             end
         end,
         cancel = function ()
-            t.cancel()                      -- cancel cb
+            h.cancel()                      -- cancel cb
             if state == 'done' then
                 return false                -- already done
             elseif state == 'cancelled' then
