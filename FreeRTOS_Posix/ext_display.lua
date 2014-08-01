@@ -33,8 +33,8 @@ function display.bg (msg, dt)
     local f = timer.bg(dt)
 
     return {
-        fg_done = function ()
-            local ret = f.fg_done()
+        wait = function ()
+            local ret = f.wait()
             if ret then
                 --events.post('EVT_OUT_DISPLAY', '')
                 print('...')

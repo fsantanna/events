@@ -16,11 +16,11 @@ local main = coroutine.wrap(
         display.fg('+D', 1000)
         print'-D'
         local f = display.bg('+E',2000)
-        assert(f.fg_done())
+        assert(f.wait())
         print'-E'
 
         local f = display.bg('+F', 1000)
         assert(f.cancel())
-        assert(f.fg_done(), 'cancelled')
+        assert(f.wait(), 'cancelled')
     end)
 main()

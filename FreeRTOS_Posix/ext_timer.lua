@@ -63,7 +63,7 @@ function timer.bg (dt)
     local ok, h = coroutine.resume(co)      -- result of timer.cb()
     assert(ok, h)
     return {
-        fg_done = function ()
+        wait = function ()
             if state == nil then
                 state = coroutine.running()
                 return coroutine.yield()    -- wait result

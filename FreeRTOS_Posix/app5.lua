@@ -16,11 +16,11 @@ local main = coroutine.wrap(
         local f = timer.bg(2000)
         timer.fg(1000)
         print'+2000'
-        assert(f.fg_done())
+        assert(f.wait())
         print'+3000'
 
         local f = timer.bg(1000)
         assert(f.cancel())
-        assert(f.fg_done(), 'cancelled')
+        assert(f.wait(), 'cancelled')
     end)
 main()
