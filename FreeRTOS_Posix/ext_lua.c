@@ -119,9 +119,9 @@ void ext_lua_init (void) {
     luaL_openlibs(L);
     assert(luaL_dofile(L,"../events.lua") == 0);
 
-    lua_getglobal(L, "events");     // [ events ]
-    lua_pushcfunction(L, l_post);   // [ events | post ]
-    lua_setfield(L, -2, "post");    // [ events ]
+    lua_getglobal(L, "event");      // [ event ]
+    lua_pushcfunction(L, l_post);   // [ event | post ]
+    lua_setfield(L, -2, "post");    // [ event ]
     lua_pop(L, 1);                  // [ ]
 
     evt_listener_add(EVT_LUA_OUT_FILE,   cb_file);

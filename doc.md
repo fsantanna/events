@@ -34,8 +34,23 @@
 
 * app.c
     Parte variável de `main.c`.
-    O exemplo atual carrega algumas extensões, define alguns listeners e gera 
-    alguns eventos explicitamente (para testes).
+    Os exemplos atuais carregam algumas extensões, definem alguns listeners e 
+    geram alguns eventos explicitamente (para testes).
+    Inicialmente, `app.c` aponta para `app1.c`.
+    Para outros testes, basta alterar o link para outro arquivo (app*.c) e 
+    recompilar a aplicação.
+
+* main.lua
+    Entry point das aplicações Lua.
+    Nunca muda.
+    Testado em `app4.c`.
+
+    Carrega as extensões disponíveis e prepara o ambiente de execução.
+    Executa o arquivo com a aplicação do usuário (`app.lua`).
+
+* app[4-6].lua
+    Exemplos de aplicações Lua.
+    Para testar cada um, basta alterar `main.lua`.
 
 * app.h
     Define as extensões e eventos utilizados.

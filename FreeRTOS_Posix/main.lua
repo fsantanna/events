@@ -1,5 +1,6 @@
 dofile '../ext_timer.lua'
-dofile '../ext_send.lua'
+dofile '../ext_display.lua'
+--dofile '../ext_send.lua'
 
 --[[
 setmetatable(_G, {
@@ -12,63 +13,50 @@ setmetatable(_G, {
 })
 ]]
 
---events.post('EVT_TIMER_OUT_START', 3000)
-
-events.listen('EVT_TIMER_IN_EXPIRED',
-    function ()
-        --print'timer expired'
-    end)
-
-
--- Crio uma "main" que chama a "timer" bloqueante que esconde as callbacks e corrotinas.
-
-local G = { sending=false }
---local sending = false
-
-events.listen_and_spawn('EVT_BUTTON_IN_PRESSED', function (_,_,G)
-    if G.sending then
-        return
-    end
-    G.sending = true
-    local send1 = async_send('1')
-    local _,v2 = sync_send('22')
-    local _,v1 = send1.sync()
-    print('1 + 22 = 3', v1 + v2)
-    assert(v1+v2 == 3)
-    G.sending = false
-end, nil,G)
-
-local main = coroutine.wrap(
-    function ()
---[[
-        for i=1, 5 do
-            print('i = '..i)
-            sync_timer(1000)
+function bg (f)
+    local state = nil   -- nil, 'done', 'cancelled', co
+    local co = coroutine.create(function ()
+        f()
+        if state == nil then
+            state = 'done'
+        else
+            assert(state ~= 'done')
+            assert(coroutine.resume(state,true))
         end
-        print 'fim'
-
-        local f = async_timer(10000)
-        f.abort()
-        print('f', f.sync())
-        events.post('EVT_BUTTON_IN_PRESSED')
-        events.post('EVT_LUA_OUT_STRING',
-                    "events.post('EVT_BUTTON_IN_PRESSED')")
-]]
-        timer.cb(1000, function() print'1000' end)
-        timer.cb(2000, function()
-            print'2000'
-            timer.cb(2000, function ()
-                print'4000'
-            end)
-        end)
-
-        timer.fg(1000)
-        print'>1000'
-        timer.fg(1000)
-        print'>2000'
-
-        local f = timer.bg(1000)
-        f.fg()
-        print'>3000'
     end)
-main()
+    local ok, ret = coroutine.resume(co)    -- result of first coroutine yield
+    assert(ok, ret)                         -- expects "ret.cancel()"
+    return {
+        wait = function ()
+            if state == nil then
+                state = coroutine.running()
+                return coroutine.yield()    -- wait result
+            elseif state == 'done' then
+                return true                 -- already terminated ok
+            else
+                assert(state == 'cancelled')
+                return false                -- already cancelled
+            end
+        end,
+        cancel = function ()
+            assert(ret.cancel,'not implemented')
+            ret.cancel()                    -- cancel from yielded object
+            if state == 'done' then
+                return false                -- already done
+            elseif state == 'cancelled' then
+                return true                 -- already cancelled, but ok
+            elseif state == nil then
+                state = 'cancelled'
+                return true                 -- cancelled
+            else
+                assert( type(state)=='thread' )
+                assert(coroutine.resume(state,false))
+                state = 'cancelled'
+                return true                 -- cancelled
+            end
+        end,
+    }
+end
+
+local f = assert(loadfile'../app6.lua')
+coroutine.wrap(f)()

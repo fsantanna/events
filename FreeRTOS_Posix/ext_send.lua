@@ -1,18 +1,18 @@
 local QUEUE = {}
 
-events.listen('EVT_SEND_IN_ACK', function (len)
+listener.add('EVT_SEND_IN_ACK', function (len)
     local req = table.remove(QUEUE, 1)
     req.cb(len)
     if #QUEUE > 0 then
         req = QUEUE[#QUEUE]
-        events.post('EVT_SEND_OUT_START', req.val)
+        event.post('EVT_SEND_OUT_START', req.val)
     end
 end)
 
 function enqueue (req)
     QUEUE[#QUEUE+1] = req
     if #QUEUE == 1 then
-        events.post('EVT_SEND_OUT_START', req.val)
+        event.post('EVT_SEND_OUT_START', req.val)
     end
 end
 

@@ -53,7 +53,5 @@ void app_init (void)
      * Teste de Lua:
      * Solicita que o "driver" de Lua execute o arquivo passado.
      */
-    //evt_queue_put(EVT_LUA_OUT_FILE, (evt_param_t)(void*)"../app4.lua", 12);
-    //evt_queue_put(EVT_LUA_OUT_FILE, (evt_param_t)(void*)"../app5.lua", 12);
-    evt_queue_put(EVT_LUA_OUT_FILE, (evt_param_t)(void*)"../app6.lua", 12);
+    evt_queue_put(EVT_LUA_OUT_FILE, (evt_param_t)(void*)"../main.lua", 12);
 }

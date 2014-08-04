@@ -1,20 +1,33 @@
+-- internal API
 events = {
+}
+
+-- external APIs (from the manual)
+listener = {
+    -- add
+    -- add_lightweight
+    -- remove
+}
+event = {
+    -- post (set from ext_lua.c)
 }
 
 local listeners = {}
 
-function events.listen (id, cb, isSpawn, ...)
-    local t = { id, cb, isSpawn, ... }
+function events.listen (id, cb, isSpawn)
+    local t = { id, cb, isSpawn }
     listeners[#listeners + 1] = t
 end
 
-function events.listen_and_spawn (id, cb, ...)
+function events.listen_and_spawn (id, cb)
+--[[
     local var_env = debug.getupvalue(cb, 2)
     if var_env then
         local var = debug.getupvalue(cb, 1)
         error('callback cannot hold upvalues: "'..var..'"')
     end
-    return events.listen(id, cb, true, ...)
+]]
+    return events.listen(id, cb, true)
 end
 
 function events.unlisten (id, cb)
@@ -27,6 +40,10 @@ function events.unlisten (id, cb)
         end
     end
 end
+
+listener.add             = events.listen_and_spawn
+listener.add_lightweight = events.listen
+listener.remove          = events.unlisten
 
 -- Dispatch guarda callbacks a serem chamadas em "__cbs" (em vez de chamá-las
 -- diretamente), pois uma "cb" pode chamar "unlisten" e alterar a tabela sendo
