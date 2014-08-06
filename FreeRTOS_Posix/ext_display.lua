@@ -2,10 +2,10 @@ dofile '../ext_timer.lua'
 
 display = {}
 
-function display.cb (msg, dt, cb)
+function display.cb_show (msg, dt, cb)
     --event.post('EVT_OUT_DISPLAY', msg)
     print(msg)
-    local h = timer.cb(dt, function ()
+    local h = timer.cb_run_after(dt, function ()
                                 --event.post('EVT_OUT_DISPLAY', '')
                                 print('...')
                                 cb()
@@ -19,18 +19,18 @@ function display.cb (msg, dt, cb)
     }
 end
 
-function display.fg (msg, dt)
+function display.fg_show (msg, dt)
     --event.post('EVT_OUT_DISPLAY', msg)
     print(msg)
-    timer.fg(dt)
+    timer.fg_sleep(dt)
     --event.post('EVT_OUT_DISPLAY', '')
     print('...')
 end
 
-function display.bg (msg, dt)
+function display.bg_show (msg, dt)
     --event.post('EVT_OUT_DISPLAY', msg)
     print(msg)
-    local f = timer.bg(dt)
+    local f = timer.bg_sleep(dt)
 
     return {
         wait = function ()

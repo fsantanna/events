@@ -30,7 +30,7 @@ end
 listener.add('EVT_TIMER_IN_EXPIRED', __cb)
 event.post('EVT_TIMER_OUT_START', 100)
 
-function timer.cb (dt, cb)
+function timer.cb_run_after (dt, cb)
     local t = { dt/100, cb, true }
     __queue[#__queue+1] = t
     table.sort(__queue, __sort)
@@ -41,16 +41,16 @@ function timer.cb (dt, cb)
     }
 end
 
-function timer.fg (dt)
+function timer.fg_sleep (dt)
     local co = coroutine.running()
-    local h = timer.cb(dt, function ()
+    local h = timer.cb_run_after(dt, function ()
         assert(coroutine.resume(co))
     end)
     coroutine.yield(h)
 end
 
-function timer.bg (dt)
+function timer.bg_sleep (dt)
     return bg(function()
-        timer.fg(dt)
+        timer.fg_sleep(dt)
     end)
 end
